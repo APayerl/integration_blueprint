@@ -22,7 +22,9 @@ class IntegrationBlueprintSensor(IntegrationBlueprintEntity, SensorEntity):
     @property
     def native_value(self):
         """Return the native value of the sensor."""
-        return self.coordinator.data.get("body")
+        return self.coordinator.data.get("value")
+        # return self.coordinator.data[DOMAIN]
+        # return "test"
 
     @property
     def icon(self):

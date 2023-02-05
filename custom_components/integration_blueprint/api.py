@@ -6,8 +6,9 @@ from typing import Optional
 import aiohttp
 import async_timeout
 
-TIMEOUT = 10
+from .TypeObj import RhService, SearchAddressResult
 
+TIMEOUT = 10
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -15,42 +16,64 @@ HEADERS = {"Content-type": "application/json; charset=UTF-8"}
 
 
 class IntegrationBlueprintApiClient:
-    def __init__(
-        self, username: str, password: str, session: aiohttp.ClientSession
-    ) -> None:
+    """API data retrieval"""
+
+    def __init__(self, session: aiohttp.ClientSession) -> None:
         """Sample API Client."""
-        self._username = username
-        self._password = password
         self._session = session
+        self.protocol = "https://"
+        self.domain = "services.vafabmiljo.se"
+        self.path = "/FutureWebVKFHus/SimpleWastePickup"
+        self.base_path = self.protocol + self.domain + self.path
 
-    async def async_get_data(self) -> dict:
-        """Get data from the API."""
-        url = "https://jsonplaceholder.typicode.com/posts/1"
-        return await self.api_wrapper("get", url)
+    async def async_get_address(self, address) -> str:
+        """Use to get address string used to query real data"""
+        url = self.base_path + "/SearchAdress"
+        query = await self.api_wrapper(
+            "post", url, data={"searchText": address}, headers=HEADERS
+        )
+        response = query.json()
+        obj = SearchAddressResult.from_dict(response)
+        _LOGGER.warning(response)
+        _LOGGER.warning("Address: %s, Response: %s", address, obj)
+        return obj.buildings[0]
 
-    async def async_set_title(self, value: str) -> None:
+    async def async_get_data(self, address) -> list[RhService]:
         """Get data from the API."""
-        url = "https://jsonplaceholder.typicode.com/posts/1"
-        await self.api_wrapper("patch", url, data={"title": value}, headers=HEADERS)
+
+        url = self.base_path + "/GetWastePickupSchedule"
+        params = {"address": address}
+        return RhService.from_dict(await self.api_wrapper("get", url, params=params))
 
     async def api_wrapper(
-        self, method: str, url: str, data: dict = {}, headers: dict = {}
+        self,
+        method: str,
+        url: str,
+        data: dict = None,
+        headers: dict = None,
+        params: dict = None,
     ) -> dict:
         """Get information from the API."""
+        if data is None:
+            data = {}
+        if headers is None:
+            headers = {}
+        if params is None:
+            params = {}
+
         try:
             async with async_timeout.timeout(TIMEOUT):
-                if method == "get":
-                    response = await self._session.get(url, headers=headers)
-                    return await response.json()
-
-                elif method == "put":
-                    await self._session.put(url, headers=headers, json=data)
-
-                elif method == "patch":
-                    await self._session.patch(url, headers=headers, json=data)
-
-                elif method == "post":
-                    await self._session.post(url, headers=headers, json=data)
+                match method:
+                    case "get":
+                        response = await self._session.get(
+                            url, headers=headers, params=params
+                        )
+                        return await response.json()
+                    case "post":
+                        response = await self._session.post(
+                            url, headers=headers, json=data
+                        )
+                        return await response.json()
 
         except asyncio.TimeoutError as exception:
             _LOGGER.error(

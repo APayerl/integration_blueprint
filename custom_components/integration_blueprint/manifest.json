@@ -1,12 +1,12 @@
 {
-  "domain": "integration_blueprint",
-  "name": "Integration blueprint",
-  "documentation": "https://github.com/custom-components/integration_blueprint",
+  "domain": "vafab_environment_pickup_day",
+  "name": "Vafab Miljö hämtningsdag",
+  "documentation": "https://github.com/APayerl/vafab_environment_pickup_day",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/custom-components/integration_blueprint/issues",
-  "version": "0.0.0",
+  "issue_tracker": "https://github.com/APayerl/vafab_environment_pickup_day/issues",
+  "version": "0.0.1",
   "config_flow": true,
   "codeowners": [
-    "@ludeeus"
+    "@apayerl"
   ]
 }

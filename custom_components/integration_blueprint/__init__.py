@@ -1,9 +1,3 @@
-"""
-Custom integration to integrate integration_blueprint with Home Assistant.
-
-For more details about this integration, please refer to
-https://github.com/custom-components/integration_blueprint
-"""
 import asyncio
 from datetime import timedelta
 import logging
@@ -17,14 +11,13 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .api import IntegrationBlueprintApiClient
 
 from .const import (
-    CONF_PASSWORD,
-    CONF_USERNAME,
+    CONF_ADDRESS,
     DOMAIN,
     PLATFORMS,
     STARTUP_MESSAGE,
 )
 
-SCAN_INTERVAL = timedelta(seconds=30)
+SCAN_INTERVAL = timedelta(hours=3)
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -40,11 +33,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         hass.data.setdefault(DOMAIN, {})
         _LOGGER.info(STARTUP_MESSAGE)
 
-    username = entry.data.get(CONF_USERNAME)
-    password = entry.data.get(CONF_PASSWORD)
+    address = entry.data.get(CONF_ADDRESS)
 
     session = async_get_clientsession(hass)
-    client = IntegrationBlueprintApiClient(username, password, session)
+    client = IntegrationBlueprintApiClient(session)
 
     coordinator = BlueprintDataUpdateCoordinator(hass, client=client)
     await coordinator.async_refresh()
